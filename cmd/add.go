@@ -5,7 +5,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/moukhtar-youssef/Task_Tracker/internal"
@@ -23,7 +22,8 @@ var addCmd = &cobra.Command{
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
-			log.Fatal(fmt.Errorf("Taks description is required"))
+			internal.LpError(fmt.Errorf("Task description is required"))
+			return
 		}
 		description := strings.Join(args[0:], " ")
 		internal.AddTask(description)

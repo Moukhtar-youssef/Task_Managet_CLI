@@ -1,12 +1,13 @@
 /*
 Copyright © 2025 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
 	"fmt"
+	"strconv"
 
+	"github.com/moukhtar-youssef/Task_Tracker/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +22,14 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("delete called")
+		if len(args) == 0 {
+			internal.LpError(fmt.Errorf("Can't be empty"))
+		}
+		id, err := strconv.Atoi(args[0])
+		if err != nil {
+			internal.LpError(fmt.Errorf("Error converting args to int: %v", err))
+		}
+		internal.DeleteTask(id)
 	},
 }
 

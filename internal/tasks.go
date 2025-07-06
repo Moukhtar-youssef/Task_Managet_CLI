@@ -2,7 +2,7 @@ package internal
 
 import (
 	"fmt"
-	"log"
+	"slices"
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
@@ -32,7 +32,7 @@ var (
 )
 
 type Task struct {
-	Id          int64      `json:"id"`
+	Id          int        `json:"id"`
 	Description string     `json:"description"`
 	Status      TaskStatus `json:"status"`
 	CreatedAt   time.Time  `json:"createdat"`
@@ -43,7 +43,7 @@ func LpError(err error) {
 	fmt.Println(errorStyle.Render(err.Error()))
 }
 
-func Newtask(id int64, description string) *Task {
+func Newtask(id int, description string) *Task {
 	return &Task{
 		Id:          id,
 		Description: description,
@@ -53,14 +53,8 @@ func Newtask(id int64, description string) *Task {
 	}
 }
 
-func ListTasks() {
-	Tasks, err := ReadFromFile()
-	if err != nil {
-		LpError(err)
-		return
-	}
-
-	if len(Tasks) == 0 {
+func printTasks(tasks []Task) {
+	if len(tasks) == 0 {
 		fmt.Println(lipgloss.NewStyle().Bold(true).Padding(1, 0).Foreground(lipgloss.Color(yellow)).Render("No tasks found"))
 		return
 	}
@@ -68,8 +62,9 @@ func ListTasks() {
 	headers := []string{"ID", "Description", "Status", "Created At", "Updated At"}
 
 	var rows [][]string
+	var TaskStatus []TaskStatus
 
-	for _, task := range Tasks {
+	for _, task := range tasks {
 		row := []string{
 			fmt.Sprintf("%d", task.Id),
 			task.Description,
@@ -79,6 +74,7 @@ func ListTasks() {
 		}
 
 		rows = append(rows, row)
+		TaskStatus = append(TaskStatus, task.Status)
 	}
 
 	t := table.New().
@@ -90,7 +86,7 @@ func ListTasks() {
 			case row == table.HeaderRow:
 				return headerStyle
 			case col == 2:
-				return statusColStyle
+				return statusColor(TaskStatus[row])
 			default:
 				return RowStyle
 			}
@@ -100,13 +96,36 @@ func ListTasks() {
 	fmt.Println(t)
 }
 
+func statusColor(status TaskStatus) lipgloss.Style {
+	switch status {
+	case STATUS_TODO:
+		return cellStyle.Foreground(red)
+	case STATUS_IN_PROGRESS:
+		return cellStyle.Foreground(yellow)
+	case STATUS_DONE:
+		return cellStyle.Foreground(lightGray)
+	default:
+		return cellStyle.Foreground(White)
+	}
+}
+
+func ListTasks() {
+	Tasks, err := ReadFromFile()
+	if err != nil {
+		LpError(err)
+		return
+	}
+	printTasks(Tasks)
+}
+
 func AddTask(description string) {
 	Tasks, err := ReadFromFile()
 	if err != nil {
-		log.Fatal(err)
+		LpError(err)
+		return
 	}
 
-	var maxID int64
+	var maxID int
 	for _, t := range Tasks {
 		if t.Id > maxID {
 			maxID = t.Id
@@ -118,6 +137,39 @@ func AddTask(description string) {
 
 	err = SaveToFile(Tasks)
 	if err != nil {
-		log.Fatal(err)
+		LpError(err)
+		return
 	}
+	printTasks(Tasks)
+}
+
+func DeleteTask(ID int) {
+	Tasks, err := ReadFromFile()
+	if err != nil {
+		LpError(err)
+		return
+	}
+
+	index := -1
+
+	for i, t := range Tasks {
+		if ID == t.Id {
+			index = i
+			break
+		}
+	}
+
+	if index == -1 {
+		LpError(fmt.Errorf("No Item found with this ID"))
+		return
+	}
+
+	Tasks = slices.Delete(Tasks, index, index+1)
+
+	err = SaveToFile(Tasks)
+	if err != nil {
+		LpError(err)
+		return
+	}
+	printTasks(Tasks)
 }
