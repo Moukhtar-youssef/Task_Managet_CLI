@@ -27,7 +27,7 @@ func ReadFromFile() ([]Task, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Error creating file: %v", err)
 		}
-		os.WriteFile(filepath, []byte("[]"), os.ModeAppend.Perm())
+		os.WriteFile(filepath, []byte("[]"), 0644)
 
 		defer file.Close()
 
@@ -42,8 +42,12 @@ func ReadFromFile() ([]Task, error) {
 	defer file.Close()
 
 	tasks := []Task{}
-	err = json.NewDecoder(file).Decode(&tasks)
+	Decoder := json.NewDecoder(file)
+	err = Decoder.Decode(&tasks)
 	if err != nil {
+		if err.Error() == "EOF" {
+			return []Task{}, nil
+		}
 		return nil, fmt.Errorf("Error Decoding task file: %v", err)
 	}
 
@@ -53,7 +57,7 @@ func ReadFromFile() ([]Task, error) {
 func SaveToFile(tasks []Task) error {
 	filepath := filepath()
 
-	file, err := os.Open(filepath)
+	file, err := os.OpenFile(filepath, os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		return fmt.Errorf("Error saving to task file: %v", err)
 	}
