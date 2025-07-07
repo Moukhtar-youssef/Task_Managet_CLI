@@ -23,3 +23,6 @@ A modern CLI-based task management application built in Go, using the Cobra fram
 git clone https://github.com/moukhtar-youssef/Task_Tracker.git
 cd Task_Tracker
 ```
+
+
+following the roadmap.sh projects : [Roadmap.sh](https://roadmap.sh/projects/task-tracker)
