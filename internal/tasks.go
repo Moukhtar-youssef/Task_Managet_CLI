@@ -15,12 +15,13 @@ const (
 	STATUS_TODO        TaskStatus = "todo"
 	STATUS_IN_PROGRESS TaskStatus = "in-progress"
 	STATUS_DONE        TaskStatus = "done"
+	STATUS_WRONG       TaskStatus = ""
 )
 
 var (
-	purple         = lipgloss.Color("99")
-	gray           = lipgloss.Color("245")
-	lightGray      = lipgloss.Color("241")
+	purple         = lipgloss.Color("#999999")
+	gray           = lipgloss.Color("#F5F5F5")
+	lightGray      = lipgloss.Color("#F1F1F1")
 	red            = lipgloss.Color("#FF0000")
 	yellow         = lipgloss.Color("#FFCC66")
 	White          = lipgloss.Color("#FFFFFF")
@@ -109,6 +110,19 @@ func statusColor(status TaskStatus) lipgloss.Style {
 	}
 }
 
+func StatusName(status string) TaskStatus {
+	switch status {
+	case "todo":
+		return STATUS_TODO
+	case "in-progress":
+		return STATUS_IN_PROGRESS
+	case "done":
+		return STATUS_DONE
+	default:
+		return STATUS_WRONG
+	}
+}
+
 func ListTasks() {
 	Tasks, err := ReadFromFile()
 	if err != nil {
@@ -116,6 +130,32 @@ func ListTasks() {
 		return
 	}
 	printTasks(Tasks)
+}
+
+func ListFilter(status string) {
+	taskStatus := StatusName(status)
+	if taskStatus == "" {
+		LpError(fmt.Errorf("Unvalid type only use 'todo', 'in-progress' or 'done'"))
+		return
+	}
+	listTasksFiltered(taskStatus)
+}
+
+func listTasksFiltered(status TaskStatus) {
+	Tasks, err := ReadFromFile()
+	if err != nil {
+		LpError(err)
+		return
+	}
+
+	var FilteredList []Task
+	for _, t := range Tasks {
+		if t.Status == status {
+			FilteredList = append(FilteredList, t)
+		}
+	}
+
+	printTasks(FilteredList)
 }
 
 func AddTask(description string) {
@@ -171,5 +211,101 @@ func DeleteTask(ID int) {
 		LpError(err)
 		return
 	}
+	printTasks(Tasks)
+}
+
+func MarkInprogress(ID int) {
+	Tasks, err := ReadFromFile()
+	if err != nil {
+		LpError(err)
+		return
+	}
+
+	index := -1
+
+	for i, t := range Tasks {
+		if ID == t.Id {
+			index = i
+			Tasks[i].Status = STATUS_IN_PROGRESS
+			Tasks[i].UpdatedAt = time.Now()
+			break
+		}
+	}
+
+	if index == -1 {
+		LpError(fmt.Errorf("No Item found with this ID"))
+		return
+	}
+
+	err = SaveToFile(Tasks)
+	if err != nil {
+		LpError(err)
+		return
+	}
+
+	printTasks(Tasks)
+}
+
+func MarkDone(ID int) {
+	Tasks, err := ReadFromFile()
+	if err != nil {
+		LpError(err)
+		return
+	}
+
+	index := -1
+
+	for i, t := range Tasks {
+		if ID == t.Id {
+			index = i
+			Tasks[i].Status = STATUS_DONE
+			Tasks[i].UpdatedAt = time.Now()
+			break
+		}
+	}
+
+	if index == -1 {
+		LpError(fmt.Errorf("No Item found with this ID"))
+		return
+	}
+
+	err = SaveToFile(Tasks)
+	if err != nil {
+		LpError(err)
+		return
+	}
+
+	printTasks(Tasks)
+}
+
+func Edit(ID int, newDescription string) {
+	Tasks, err := ReadFromFile()
+	if err != nil {
+		LpError(err)
+		return
+	}
+
+	index := -1
+
+	for i, t := range Tasks {
+		if ID == t.Id {
+			index = i
+			Tasks[i].Description = newDescription
+			Tasks[i].UpdatedAt = time.Now()
+			break
+		}
+	}
+
+	if index == -1 {
+		LpError(fmt.Errorf("No Item found with this ID"))
+		return
+	}
+
+	err = SaveToFile(Tasks)
+	if err != nil {
+		LpError(err)
+		return
+	}
+
 	printTasks(Tasks)
 }

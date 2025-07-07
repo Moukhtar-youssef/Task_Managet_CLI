@@ -1,40 +1,38 @@
 /*
-Copyright © 2025 NAME HERE <EMAIL ADDRESS>
-
+Copyright © 2025 Moukhtar Youssef <moukhtar@example.com>
 */
 package cmd
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
+	"github.com/moukhtar-youssef/Task_Tracker/internal"
 	"github.com/spf13/cobra"
 )
 
 // editCmd represents the edit command
 var editCmd = &cobra.Command{
-	Use:   "edit",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Use:     "edit <task-ID> <new-description>",
+	Short:   "Edit the description of an existing task",
+	Long:    `Modifies the description of an existing task by its ID.`,
+	Example: "  Task_Tracker edit 3 \"Read a new book\"",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("edit called")
+		if len(args) < 2 {
+			internal.LpError(fmt.Errorf("Usage: edit <task-ID> <new-description>"))
+			return
+		}
+		id, err := strconv.Atoi(args[0])
+		if err != nil {
+			internal.LpError(fmt.Errorf("Invalid task ID: %v", err))
+			return
+		}
+		newDesc := strings.Join(args[1:], " ")
+		internal.Edit(id, newDesc)
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(editCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// editCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// editCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	RootCmd.AddCommand(editCmd)
 }

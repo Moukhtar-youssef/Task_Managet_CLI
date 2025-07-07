@@ -13,13 +13,10 @@ import (
 
 // addCmd represents the add command
 var addCmd = &cobra.Command{
-	Use:   "add <task>",
-	Short: "Add a task to the todo list",
-	Long:  `Add a task to the todo list it is done like that 'add <task>'`,
-	Example: `
-	Todo add Todo1 
-	Todo add Buy milk
-	`,
+	Use:     "add <task>",
+	Short:   "Add a new task to your task list",
+	Long:    `Adds a new task to your task list. The task description should be provided as an argument.`,
+	Example: "  Task_Tracker add \"Buy groceries\"",
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
 			internal.LpError(fmt.Errorf("Task description is required"))
@@ -31,5 +28,5 @@ var addCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(addCmd)
+	RootCmd.AddCommand(addCmd)
 }
