@@ -9,12 +9,13 @@ import (
 )
 
 func filepath() string {
-	cwd, err := os.Getwd()
+	excutable, err := os.Executable()
 	if err != nil {
 		log.Fatalf("Error getting current working directory: %v", err)
 		return ""
 	}
-	return path.Join(cwd, "tasks.json")
+	exeDir := path.Dir(excutable)
+	return path.Join(exeDir, "tasks.json")
 }
 
 func ReadFromFile() ([]Task, error) {
